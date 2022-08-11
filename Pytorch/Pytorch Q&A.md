@@ -268,8 +268,4 @@ print(loss)
 
 
 
-### Q6：`model.save()` & `model.load()`
-
-找找官方文档
-
-load_state_dict
+### Q6：
