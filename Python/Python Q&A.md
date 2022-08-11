@@ -1,8 +1,20 @@
 # Python Q & A
 
+> 主要参考：
+>
+> - [python_interview_question(4.7k stars)](https://github.com/kenwoodjw/python_interview_question#%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C)
+>
+> - [interview_python (15.1k stars)](https://github.com/taizilongxu/interview_python)
+>
+> - [python-interview (31 stars)](https://github.com/wangyitao/python-interview)
+>
+> - [python -81](https://developer.aliyun.com/article/656961)
+> - [stackoverflow about python](https://taizilongxu.gitbooks.io/stackoverflow-about-python/content/)
+> - [廖雪峰Python](https://www.liaoxuefeng.com/wiki/1016959663602400/1017328655674400)
+
 [TOC]
 
-
+## 理论类
 
 ### Q1：函数可变参数`*args` 和 `**kwargs`
 
@@ -95,7 +107,7 @@ test.x  # 调用属性
 - Python3可以直接写成`super().方法名(参数)`
 - Python2必须写成`super(父类,self).方法名(参数)`
 
-### 私有属性 & 私有方法
+### Q3：私有属性 & 私有方法
 
 双下划线开头，声明该属性或该方法为私有，不能在类的外部被使用或直接访问；
 
@@ -126,13 +138,13 @@ runoob = Runoob()
 print runoob._Runoob__site
 ```
 
-### Q3：单下划线、双下划线、头尾下划线
+### Q4：单下划线、双下划线、头尾下划线
 
 - \_\_foo\_\_: 定义的是特殊方法，一般是系统定义名字 ，类似 \_\_init\_\_() 之类的。
 - **_foo**: 以单下划线开头的表示的是 protected 类型的变量，即保护类型只能允许其本身与子类进行访问，不能用于 **from module import \***
 - **__foo**: 双下划线的表示的是私有类型(private)的变量, 只能是允许这个类本身进行访问了。
 
-### Q4：`\#!/usr/bin/env python` & `# -*- coding:utf-8 -*-`
+### Q5：`\#!/usr/bin/env python` & `# -*- coding:utf-8 -*-`
 
 - `\#!/usr/bin/env python`：指定[/usr/bin/env]目录下的python解释器执行python脚本
 
@@ -140,7 +152,7 @@ print runoob._Runoob__site
 
   Python中默认的编码格式是 ASCII 格式，在没修改编码格式时无法正确打印汉字，在读取中文时会报错。Python3.X 源码文件默认使用utf-8编码，可以正常解析中文，一般而言，都会声明为utf-8编码。
 
-### Q5：参数传递
+### Q6：参数传递
 
 ```python
 # Case 1
@@ -170,13 +182,15 @@ print a  # [1]
 - 可更改对象（mutable）：`list`、`dict`、`set`。总是会按引用传入函数，函数代码组中对变量数据结构的任何改变都会反映到调用代码中。
 - 不可更改对象（immutable）：`string`、`tuples`、`numbers`。总是会按值传入函数，函数中对变量的任何修改是这个函数私有的，不会反映到调用代码中。
 
-### Q6：元类（metaclass）
+### Q7：元类（metaclass）
 
-### Q7：`@staticmethod` & `@classmethod`
+> https://taizilongxu.gitbooks.io/stackoverflow-about-python/content/part/2.html
+
+### Q8：`@staticmethod` & `@classmethod`
 
 > [参考](https://blog.csdn.net/GeekLeee/article/details/52624742?spm=1001.2101.3001.6661.1&utm_medium=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-52624742-blog-9615239.pc_relevant_multi_platform_whitelistv3&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-52624742-blog-9615239.pc_relevant_multi_platform_whitelistv3&utm_relevant_index=1)
 
-Python中，要使用某个类的方法或属性，首先需要实例化一个对象再调用方法或属性。而使用`@staticmethod`或`@classmethod`，就可以不用实例化，直接`类名.方法名()`来调用。这样有利于组织代码，把某些应该属于某个类的函数给放到那个类去，同时有利于命名空间的整洁。
+Python中，要使用某个类的方法或属性，首先需要实例化一个类再调用方法或属性。而使用`@staticmethod`或`@classmethod`，就可以不用实例化，直接`类名.方法名()`来调用。这样有利于组织代码，把某些应该属于某个类的函数给放到那个类去，同时有利于命名空间的整洁。
 
 **两者区别**
 
@@ -267,7 +281,7 @@ a=A()
   
   ```
 
-### Q8：类变量和实例变量
+### Q9：类变量和实例变量
 
 ```python
 class Test(object):  
@@ -319,7 +333,7 @@ print Person.name  # [1]
 
 **和可更改对象、不可更改对象类似！！**
 
-### Q9：Python自省
+### Q10：Python自省
 
 自省就是面向对象的语言所写的程序在运行时,所能知道对象的类型.简单一句就是运行时能够获得对象的类型.比如`type()`,`dir()`,`getattr()`,`hasattr()`,`isinstance()`.
 
@@ -329,21 +343,21 @@ print Person.name  # [1]
 - `hasattr()`：判断对象是否包含对应的属性
 - `isinstance()`：判断一个对象是否是指定的类型
 
-### Q10：格式化字符串
+### Q11：格式化字符串
 
-### Q11：生成器 & 迭代器
+### Q12：生成器 & 迭代器
 
 > [StackOverflow](https://taizilongxu.gitbooks.io/stackoverflow-about-python/content/part/1.html)
 >
 > [菜鸟教程](https://www.runoob.com/python3/python3-iterator-generator.html)
 
-### Q14：装饰器
+### Q13：装饰器
 
 [StackOverflow](https://stackoverflow.com/questions/739654/how-to-make-function-decorators-and-chain-them-together)
 
-### 切片编程 AOP
+### Q14：切片编程 AOP
 
-### 鸭子类型 Duck Typing
+### Q15：鸭子类型 Duck Typing
 
 > Google的定义
 >
@@ -360,7 +374,7 @@ print Person.name  # [1]
 动态语言，如：PHP、Python、JavaScript
 静态语言，如：C++、Java、Golang
 
-### Q17：为什么Python不需要函数重载？
+### Q16：为什么Python不需要函数重载？
 
 函数重载主要是为了解决两个问题。
 
@@ -376,4 +390,201 @@ print Person.name  # [1]
 
 好了，鉴于情况 1 跟 情况 2 都有了解决方案，python 自然就不需要函数重载了。
 
-### Q18：新式类 & 旧式类
+### Q17：新式类 & 旧式类
+
+### Q18：Python 推导式
+
+### Q19：类中的函数：`__new__`和`__init__`
+
+> 参考：https://stackoverflow.com/questions/674304/why-is-init-always-called-after-new
+
+两者都是有关类的函数。
+
+- **作用**：当我们实例化一个类时，`__new__`控制我们如何创建一个实例，`__init__`控制我们如何初始化一个实例。
+
+- **先后**：首先得创建一个实例，然后才能对其初始化。（`__init__`函数有`self`参数）
+- **返回值**：`__new__`返回一个实例，`__init__`不返回任何值。
+
+### Q20：各类设计模式
+
+- 单例模式...手写单例模式 4种方法
+
+### Q21：`nonlocal` & `Global`
+
+```python
+# 没有用nonlocal 和 global
+x = 0
+def outer():
+    x = 1
+    def inner():
+        x = 2
+        print("inner:", x)
+
+    inner()
+    print("outer:", x)
+
+outer()
+print("global:", x)
+
+# inner: 2
+# outer: 1
+# global: 0
+```
+
+```python
+# nonlocal
+x = 0
+def outer():
+    x = 1
+    def inner():
+        nonlocal x
+        x = 2
+        print("inner:", x)
+
+    inner()
+    print("outer:", x)
+
+outer()
+print("global:", x)
+
+# inner: 2
+# outer: 2
+# global: 0
+```
+
+```python
+# global
+x = 0
+def outer():
+    x = 1
+    def inner():
+        global x
+        x = 2
+        print("inner:", x)
+
+    inner()
+    print("outer:", x)
+
+outer()
+print("global:", x)
+
+# inner: 2
+# outer: 1
+# global: 2
+```
+
+### Q22：Python作用域
+
+1. Local局部作用域：能够访问局部变量的作用域，比如一个函数/方法 内部
+
+2. Enclosing嵌套作用域：包含非局部（nonlocal）、非全局（nonglobal）变量。比如函数A中嵌套了函数B，则A中的变量就是nonlocal，B中的变量是local
+
+   ```python
+   g_count = 0  # 全局作用域
+   def outer():
+       o_count = 1  # 闭包函数外的函数中
+       def inner():
+           i_count = 2  # 局部作用域
+           # 这里可以访问o_count，但不能修改
+   ```
+
+3. Global全局作用域：能够访问全局变量的作用域
+
+4. Built-in内置作用域：能够访问内置函数和内置变量的作用域。如`max`函数、`abs`函数
+
+![img](Python Q&A.assets/1418490-20180906153626089-1835444372.png)
+
+### Q23：高阶函数
+
+在Python中，函数是一个对象，类也是一个对象，一切皆为对象。
+
+作为一个对象，所以：
+
+- 可以把它赋值给一个变量
+- 可以对此赋值
+- 可以给它添加属性
+- 可以作为函数参数来传递它
+
+而高阶函数：把一个函数作为参数来传递的函数，称之为高阶函数。
+
+==函数式编程的特点之一==：允许把函数本身作为参数传入另一个函数，还允许返回一个函数。（装饰器把函数作为返回值，也是函数式编程的一种）
+
+```python
+def add(x, y, f):
+    return f(x) + f(y)
+```
+
+#### `map()`
+
+`map()`函数接收两个参数，一个是函数，一个是`Iterable`，`map`将传入的函数依次作用到序列的每个元素，并把结果作为新的`Iterator`返回。
+
+```python
+>>> def f(x):
+...     return x * x
+...
+>>> r = map(f, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+# 这里的f当然也可以用lamda匿名函数来实现
+>>> list(r)
+[1, 4, 9, 16, 25, 36, 49, 64, 81]
+```
+
+`map()`把运算规则`f`抽象了，使得我们显而易见得知道代码在干什么。
+
+#### `reduce()`
+
+`reduce`把一个函数作用在一个序列`[x1, x2, x3, ...]`上，这个函数必须接收两个参数，`reduce`把结果继续和序列的下一个元素做累积计算，其效果就是：
+
+```python
+reduce(f, [x1, x2, x3, x4]) = f(f(f(x1, x2), x3), x4)
+```
+
+```python
+# reduce() 应用例子
+# 把序列[1,3,5,7,9]变成整数13579
+>>> from functools import reduce
+>>> def fn(x, y):
+...     return x * 10 + y
+...
+>>> reduce(fn, [1, 3, 5, 7, 9])
+13579
+```
+
+#### `filter`
+
+`filter`函数用于过滤序列。`filter`函数接收一个函数和一个序列，把传入的函数依次作用于每个元素，然后根据返回值是`True`还是`False`决定保留还是丢弃该元素。返回一个`Iterator`。
+
+```python
+def is_odd(n):
+    return n % 2 == 1
+
+list(filter(is_odd, [1, 2, 4, 5, 6, 9, 10, 15]))
+# 结果: [1, 5, 9, 15]
+```
+
+#### `sorted`
+
+`sorted()`函数也是一个高阶函数，它可以接收一个`key`函数来实现自定义的排序，key指定的函数将作用于list的每一个元素上，并根据key函数返回的结果进行排序。例如按绝对值大小排序：
+
+```python
+>>> sorted([36, 5, -12, 9, -21], key=abs)
+[5, 9, -12, -21, 36]
+```
+
+```python
+# 另一个例子 为了演示 reverse参数
+# sorted 默认从小到大，reverse=True时从大到小
+>>> sorted(['bob', 'about', 'Zoo', 'Credit'], key=str.lower, reverse=True)
+['Zoo', 'Credit', 'bob', 'about']
+```
+
+
+
+
+
+### Q24：
+
+---
+
+## 具体问题类
+
+### Q1：
