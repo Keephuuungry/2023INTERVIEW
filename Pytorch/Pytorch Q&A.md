@@ -2,8 +2,6 @@
 
 [TOC]
 
-
-
 ### Q1：`torch.nn`与`torch.nn.functional`的区别与联系
 
 发现`nn.Conv2d()`和`nn.functional.conv2d()`都可以用来构建模型，区别与联系？
@@ -268,4 +266,8 @@ print(loss)
 
 
 
-### Q6：
+### Q6：使用Python遇到的问题
+
+> [Pytorch有哪些坑](https://www.zhihu.com/question/67209417)
+
+### 
