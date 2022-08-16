@@ -247,107 +247,148 @@ Pytorch提供了两个原始接口用于处理和数据相关的任务，分别�
 
 ##### `utils.data.Dataset`
 
-1. 使用Pytorch`Dataset`库中提供的数据集
+> 参考：https://blog.csdn.net/liudaohui11/article/details/107772849
+>
+> https://yizhepku.github.io/2020/12/26/dataloader.html
+>
+> https://zhuanlan.zhihu.com/p/337850513
 
-   ```python
-   import torch
-   from torch.utils.data import Dataset
-   from torchvision import datasets
-   from torchvision.io import ToTensor
-   
-   #以FashionMNIST举例
-   train_data = datasets.FashionMNIST(
-       root="path",
-       train=True,
-       download=True,
-       transform=ToTensor()
-   )
-   
-   test_data = datasets.FashionMNIST(
-       root="data",
-       train=False,
-       download=True,
-       transform=ToTensor()
-   )
-   ```
+Dataset 负责对 raw data source 封装，将其封装成 Python 可识别的数据结构。
 
-   - `root` is the path where the train/test data is stored.
+Pytorch的三个库`torchvision`、`torchtext`、`torchaudio`分别提供了对应的datasets，方便用户直接调用。除了直接调用此类数据包的形式，针对特定数据集，需要用户自定义Dataset子类。
 
-   - `train` specifies training or test dataset.
+Dataset 共有 **Map-style datasets** 和 **Iterable-style datasets** 两种。
 
-   - `download=True` downloads the data from the internet if it's not available at `root`.
+1. Map-style datasets：它是一种通过实现 `__getitem__()` 和 `__len()__` 来获取数据的 Dataset，它表示从（可能是非整数）索引/关键字到数据样本的映射。访问时，这样的数据集用 `dataset[idx]` 访问 `idx` 对应的数据。通常我们使用Map-style类型的dataset居多。（Map-style datasets provide random-access capbilities）
+2. Iterable-style datasets：它是一种实现 `__iter__()` 来获取数据的 Dataset，这种类型的数据集特别适用于以下情况：随机读取代价很大甚至不大可能，且 batch size 取决于获取的数据。（Iterable-style dataset can only be accessed sequentially）
 
-   - `transform` and `target_transform` specify the feature and label transformations.
+下面对直接使用Pytorch提供的datasets、自定义Map-style datasets、自定义Iterable-style datasets展开讨论。
 
-2. 使用自带的数据集
+- **使用Pytorch`Dataset`库中提供的数据集**
 
-   这类情况需要我们定义自己的Dataset类来实现灵活的数据读取，定义的类需要继承Pytorch自身的Dataset类，主要包含三个函数：
+  ```python
+  import torch
+  from torch.utils.data import Dataset
+  from torchvision import datasets
+  from torchvision.io import ToTensor
+  
+  #以FashionMNIST举例
+  train_data = datasets.FashionMNIST(
+      root="path",
+      train=True,
+      download=True,
+      transform=ToTensor()
+  )
+  
+  test_data = datasets.FashionMNIST(
+      root="data",
+      train=False,
+      download=True,
+      transform=ToTensor()
+  )
+  ```
 
-   - `__init__`：用于向类中传入外部参数，同时定义样本集
-   - `__getitem__`：用于逐个读取样本集合中的元素，可以进行一定的变换，并将返回训练/验证所需的数据
-   - `__len__`：用于返回数据集的样本数
+  - `root` is the path where the train/test data is stored.
 
-   ```python
-   import os
-   import pandas as pd
-   from torchvision.io import read_image
-   from torch.utils.data import Dataset
-   """
-   例：将图片存储在image_path目录下，标签以CSV文件形式存储在label_csv_path目录下。
-   
-   label_csv格式如下：
-       tshirt1.jpg, 0
-       tshirt2.jpg, 0
-       ......
-   	ankleboot999.jpg, 9
-   
-   如果数据集图片-标签的存储形式不同，相应的代码也需要修改。
-   最终目的是通过每张图片的路径读取图片，将image及对应的label返回。
-   """
-   class CustomImageDataset(Dataset):
-   	def __init__(self, image_path, label_csv_path, transform=None, target_transform=None):
-           self.img_path = image_path
-       	self.label_csv = pd.read_csv(label_csv_path)
-           self.transform = transform
-           self.target_transform = target_transform
-           
-       def __len__(self):
-           return len(self.label_csv)
-       
-       def __getitem__(self, idx):
-           img_path = os.path.join(self.img_path, self.label_csv.iloc[idx,0])
-           image = read_image(img_path)
-           label = self.label_csv.iloc[idx,1]
-           if self.transform:
-               image = self.transform(image)
-           if self.target_transform:
-               image = self.target_transform(image)
-           return image, label
-   ```
+  - `train` specifies training or test dataset.
 
-   > 可以用不同的工具包读取数据：
-   >
-   > - ```python
-   >   from PIL import Image
-   >   image = Image.open("file_path")
-   >   # 读取的image数据类型为PIL
-   >   ```
-   >
-   > - ```python
-   >   from torchvision.io import read_image
-   >   image = read_image("file_path")
-   >   # 读取的image数据类型为Tensor
-   >   ```
-   >
-   > - ```python
-   >   # opencv库
-   >   import cv2
-   >   image = cv2.imread("file_path")
-   >   # 读取的image数据类型为numpy.ndarray
-   >   ```
+  - `download=True` downloads the data from the internet if it's not available at `root`.
 
+  - `transform` and `target_transform` specify the feature and label transformations.
+
+- **自定义Map-style datasets**
+
+  "A map-style dataset is one that implements the `__getitem__()` and `__len__()`protocols, and represents a map from (possibly non-integral) indices/keys to data samples."
+
+  这是官方的说法，map-style的数据集时一种应用`__getitem__()`和`__len__()`协议的数据集，代表了索引/键向数据样本的映射。也就是说，这个数据不是直接读的数据集，读的是数据的索引或者键。
+
+  这种情况下载入数据集的程序大致可以写成：
+
+  ```python
+  for indices in batch_sampler:
+  	yield collate_fn([dataset[i] for i in indices])
+  ```
+
+  collate_fn：通俗解释是，将一堆数据按一定结构整合起来。
+
+  **具体例子**
+
+  ```python
+  import os
+  import pandas as pd
+  from torchvision.io import read_image
+  from torch.utils.data import Dataset
+  """
+  例：将图片存储在image_path目录下，标签以CSV文件形式存储在label_csv_path目录下。
+  
+  label_csv格式如下：
+      tshirt1.jpg, 0
+      tshirt2.jpg, 0
+      ......
+  	ankleboot999.jpg, 9
+  
+  如果数据集图片-标签的存储形式不同，相应的代码也需要修改。
+  最终目的是通过每张图片的路径读取图片，将image及对应的label返回。
+  """
+  class CustomImageDataset(Dataset):
+      # __init__：用于向类中传入外部参数，同时定义样本集
+  	def __init__(self, image_path, label_csv_path, transform=None, target_transform=None):
+          self.img_path = image_path
+      	self.label_csv = pd.read_csv(label_csv_path)
+          self.transform = transform
+          self.target_transform = target_transform
+      # __len__：用于返回数据集的样本数
+      def __len__(self):
+          return len(self.label_csv)
+      # __getitem__：用于逐个读取样本集合中的元素，可以进行一定的变换，并将返回训练/验证所需的数据
+      def __getitem__(self, idx):
+          img_path = os.path.join(self.img_path, self.label_csv.iloc[idx,0])
+          image = read_image(img_path)
+          label = self.label_csv.iloc[idx,1]
+          if self.transform:
+              image = self.transform(image)
+          if self.target_transform:
+              image = self.target_transform(image)
+          return image, label
+  ```
+
+  > 【拓展】可以用不同的工具包读取数据：
+  >
+  > - ```python
+  >   from PIL import Image
+  >   image = Image.open("file_path")
+  >   # 读取的image数据类型为PIL
+  >   ```
+  >
+  > - ```python
+  >   from torchvision.io import read_image
+  >   image = read_image("file_path")
+  >   # 读取的image数据类型为Tensor
+  >   ```
+  >
+  > - ```python
+  >   # opencv库
+  >   import cv2
+  >   image = cv2.imread("file_path")
+  >   # 读取的image数据类型为numpy.ndarray
+  >   ```
+
+- **自定义Iterable-style datasets**
+
+  迭代型的数据集是IterableDataset的一个子类，使用`__iter__()`协议，代表读入数据集，然后在整个数据集的样本上进行迭代。这种数据集特别适合随机读取代价昂贵的情况，batch_size取决于所提取的数据。
+
+  这种情况下，载入数据集的程序大致可以写成：
+
+  ```python
+  # 先用数据集建立一个迭代器，然后数据是直接从迭代器里面返回的，索引indice的作用仅仅是计数而已.
+  dataset_iter = iter(dataset)
+  for indices in batch_sampler:
+      yield collate_fn([next(dataset_iter) for _ in indices])
+  ```
 
 ##### `utils.data.DataLoader`
+
+`torch.utils.data.DataLoader` 是 PyTorch 数据加载的核心，负责加载数据，同时支持 Map-style 和 Iterable-style Dataset，支持单进程/多进程，还可以设置 loading order, batch size, pin memory 等加载参数。
 
 1. 构建好Dataset后，就可以使用DataLoader来按批次读入数据了，实现代码如下：
 
@@ -362,7 +403,14 @@ Pytorch提供了两个原始接口用于处理和数据相关的任务，分别�
 
    - `batch_size`：每次读入的样本数
    - `num_workers`：有多少个进程用于读取数据
-   - `shuffle`：是否将读入的数据打乱
+   - `shuffle`：是否将读入的数据打乱。设置为True时，调用`torch.utils.data.RandomSampler`进行随机索引。
+   - `sampler`：定义从数据集中提取样本的策略。如果指定了，shuffle参数需为False（否则会和RandomSampler互斥）
+   
+     > Pytorch提供的其他类型的Sampler子类：
+     >
+     > 1. `torch.utils.data.SequentialSampler`：顺序采样样本。
+     > 2. `torch.utils.data.SubsetRandomSampler`：无放回的按照给定索引列表采样元素
+     > 3. `torch.utils.data.WeightedRandomSampler`：按照给定的概率采样样本。...
    - `drop_last`：对于样本最后一部分没有达到批次数的样本，使其不再参与训练
 
 Pytorch中的`DataLoader`读取可以使用`next`和`iter`来完成：
@@ -379,13 +427,200 @@ plt.show()
 
 #### `utils.model_zoo`
 
+只有一个函数`utils.model_zoo.load_url(url, model_dir=None)`：在给定URL上加载Torch序列化对象。通俗点来说，就是通过提供的`.pth`文件的url地址来下载指定的`.pth`文件。
+
+==注==：Pytorch保存的模型参数或整个模型都是以`.pth`格式存储下来的。
+
+- `url`：要下载对象的URL
+- `model_dir`：保存对象的目录
+
+其实，这个函数就是为了读取模型。下面两者等价：
+
+```python
+weight_url = "XXXXXX.pth"
+pretrained_dict = torch.utils.model_zoo.load_url(weight_url)
+self.load_state_dict(pretrained_dict)
+```
+
+```python
+checkpoint = torch.load("XXX.pth")
+self.load_state_dict(checkpoint)
+```
+
 ### `torch.nn`
+
+`torch.nn`主要包括了`nn.Parameter`、Containers、Convolution Layers、Pooling Layers、Padding Layers、激活函数、归一化层、RNN、CNN、dropout、损失函数等网络结构模块。
+
+> 参考：https://pytorch.org/docs/stable/nn.html
+>
+> https://www.javatpoint.com/torch_nn-in-pytorch
 
 #### `nn.Module`
 
+> 参考：https://www.jianshu.com/p/a4c745b6ea9b
+
+``nn.Module`是所有模块的基类。
+
+`nn.Module`提供了一些方法管理子模块：
+
+1. `children()`方法：返回生成器，包括模块下的所有子模块。
+2. `named_children()`：返回生成器，包括模块下的所有子模块，以及它们的名字。
+3. `modules()`方法：返回生成器，包括模块下的所有各个层级的模块，包括模块本身。
+4. `named_modules`方法：返回生成器，包括模块下的所有各个层级的模块以及他们的名字。
+
+`children()`方法和`named_children()`方法使用较多。
+
+```python
+# 定义一个网络
+class Net(nn.Module):
+
+    def __init__(self):
+        super(Net, self).__init__()
+
+        self.embedding = nn.Embedding(num_embeddings = 10000,embedding_dim = 3,padding_idx = 1)
+        self.conv = nn.Sequential()
+        self.conv.add_module("conv_1",nn.Conv1d(in_channels = 3,out_channels = 16,kernel_size = 5))
+        self.conv.add_module("pool_1",nn.MaxPool1d(kernel_size = 2))
+        self.conv.add_module("relu_1",nn.ReLU())
+        self.conv.add_module("conv_2",nn.Conv1d(in_channels = 16,out_channels = 128,kernel_size = 2))
+        self.conv.add_module("pool_2",nn.MaxPool1d(kernel_size = 2))
+        self.conv.add_module("relu_2",nn.ReLU())
+
+        self.dense = nn.Sequential()
+        self.dense.add_module("flatten",nn.Flatten())
+        self.dense.add_module("linear",nn.Linear(6144,1))
+        self.dense.add_module("sigmoid",nn.Sigmoid())
+
+    def forward(self,x):
+        x = self.embedding(x).transpose(1,2)
+        x = self.conv(x)
+        y = self.dense(x)
+        return y
+
+net = Net()
+```
+
+```python
+# children()方法
+i = 0
+for child in net.children():
+    i+=1
+    print(child,"\n")
+print("child number",i)
+```
+
+```text
+# children()方法输出
+Embedding(10000, 3, padding_idx=1) 
+
+Sequential(
+  (conv_1): Conv1d(3, 16, kernel_size=(5,), stride=(1,))
+  (pool_1): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (relu_1): ReLU()
+  (conv_2): Conv1d(16, 128, kernel_size=(2,), stride=(1,))
+  (pool_2): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (relu_2): ReLU()
+) 
+
+Sequential(
+  (flatten): Flatten()
+  (linear): Linear(in_features=6144, out_features=1, bias=True)
+  (sigmoid): Sigmoid()
+) 
+
+child number 3
+```
+
+```python
+# named_children()方法
+i = 0
+for name,child in net.named_children():
+    i+=1
+    print(name,":",child,"\n")
+print("child number",i)
+```
+
+```text
+# named_children()方法输出
+embedding : Embedding(10000, 3, padding_idx=1) 
+
+conv : Sequential(
+  (conv_1): Conv1d(3, 16, kernel_size=(5,), stride=(1,))
+  (pool_1): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (relu_1): ReLU()
+  (conv_2): Conv1d(16, 128, kernel_size=(2,), stride=(1,))
+  (pool_2): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (relu_2): ReLU()
+) 
+
+dense : Sequential(
+  (flatten): Flatten()
+  (linear): Linear(in_features=6144, out_features=1, bias=True)
+  (sigmoid): Sigmoid()
+) 
+
+child number 3
+```
+
+```python
+# modules()方法
+i = 0
+for module in net.modules():
+    i+=1
+    print(module)
+print("module number:",i)
+```
+
+```text
+Net(
+  (embedding): Embedding(10000, 3, padding_idx=1)
+  (conv): Sequential(
+    (conv_1): Conv1d(3, 16, kernel_size=(5,), stride=(1,))
+    (pool_1): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (relu_1): ReLU()
+    (conv_2): Conv1d(16, 128, kernel_size=(2,), stride=(1,))
+    (pool_2): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (relu_2): ReLU()
+  )
+  (dense): Sequential(
+    (flatten): Flatten()
+    (linear): Linear(in_features=6144, out_features=1, bias=True)
+    (sigmoid): Sigmoid()
+  )
+)
+Embedding(10000, 3, padding_idx=1)
+Sequential(
+  (conv_1): Conv1d(3, 16, kernel_size=(5,), stride=(1,))
+  (pool_1): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (relu_1): ReLU()
+  (conv_2): Conv1d(16, 128, kernel_size=(2,), stride=(1,))
+  (pool_2): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (relu_2): ReLU()
+)
+Conv1d(3, 16, kernel_size=(5,), stride=(1,))
+MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+ReLU()
+Conv1d(16, 128, kernel_size=(2,), stride=(1,))
+MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+ReLU()
+Sequential(
+  (flatten): Flatten()
+  (linear): Linear(in_features=6144, out_features=1, bias=True)
+  (sigmoid): Sigmoid()
+)
+Flatten()
+Linear(in_features=6144, out_features=1, bias=True)
+Sigmoid()
+module number: 13
+```
+
 #### `nn.functional`
 
+里面有关网络结构的函数，和`nn.Xxx`大差不差。
+
 ### `torch.optim`
+
+> 参考：https://zhuanlan.zhihu.com/p/346205754
 
 ### 神经网络的运算性能
 
